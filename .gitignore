@@ -1,3 +1,6 @@
 /data/
+/workspace/
 __pycache__/
 .vscode/
+.hydra/
+run.log

@@ -1,4 +1,4 @@
-pytorch-lightning==1.5.10
+pytorch-lightning==1.8.1
 imgaug==0.4.0
 opencv-python==4.6.0.66
 hydra-core==1.1.1
@@ -9,7 +9,7 @@ timm==0.9.2
 tqdm==4.64.1
 segmentation-models-pytorch==0.3.3
 coremltools==6.1
-torch==1.8.1+cu101
+torch==1.11.0+cu115
 tensorboard==2.11.0
 numpy==1.23.5
 # imageio==2.22.4

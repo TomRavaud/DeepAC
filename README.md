@@ -14,11 +14,12 @@
 conda create -n deepac python=3.8
 conda activate deepac
 # install torch
-pip install torch==1.8.1+cu101 torchvision==0.9.1+cu101 torchaudio==0.8.1 -f https://download.pytorch.org/whl/torch_stable.html
+pip install torch==1.11.0+cu115 torchvision==0.12.0+cu115 torchaudio==0.11.0 -f https://download.pytorch.org/whl/torch_stable.html
 # install pytorch3d
 conda install -c fvcore -c iopath -c conda-forge fvcore iopath
 conda install -c bottler nvidiacub
-pip install "git+https://github.com/facebookresearch/pytorch3d.git@v0.7.1"
+# Working with pytorch3d 0.7.5
+pip install "git+https://github.com/facebookresearch/pytorch3d.git@stable"
 # install other dependencies
 pip install -r requirements.txt
 ```
