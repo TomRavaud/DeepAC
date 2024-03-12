@@ -240,6 +240,7 @@ class BoundaryPredictor(nn.Module):
         min_variance_gaussian = function_slop[..., 0]
         min_variance = torch.max(min_variance_laplace, min_variance_gaussian)
 
+        # Compute the Stoiber's joint posterior distribution
         # distributions = torch.zeros(size=(lines_image_pb_segments.shape[0], lines_image_pb_segments.shape[1],
         #                                   self.distribution_length), dtype=torch.float32, device=device)
         statistical_distributions = []
@@ -251,9 +252,12 @@ class BoundaryPredictor(nn.Module):
         statistical_distributions = torch.stack(statistical_distributions, dim=-1)
         statistical_distributions = torch.nn.functional.normalize(statistical_distributions, dim=-1, p=1)
 
+        # Input of the boundary prediction module (CNN)
         # tmp_distributions = distributions
         inp = {'it': 0, 'inner_it': 0, 'lines_feature': lines_feature,
                'distributions': statistical_distributions, 'pf': lines_image_pf_segments}
+        
+        # Apply the boundary prediction module (CNN)
         # distributions, distribution_uncertainties = self.line_distribution_extractor(inp)
         distributions = self.line_distribution_extractor(inp)
         
@@ -266,6 +270,9 @@ class BoundaryPredictor(nn.Module):
         #     import ipdb;
         #     ipdb.set_trace();
 
+        # Fit a Gaussian distribution to the joint posterior distribution
+        # (the mean and variance are used in the gradient and Hessian matrix
+        # computation)
         distribution_mean, distribution_variance, distribution_standard_deviation = \
             self.fit_gaussian_distribution(distributions, min_variance, device)
 
@@ -537,15 +544,32 @@ class DeepAC(BaseModel):
             import ipdb;
             ipdb.set_trace();
 
+        ##
+        # a. Arrange the correspondence lines to form the contour feature map
+        ##
         normals_in_image, centers_in_image, centers_in_body, \
         lines_image_pf_segments, lines_image_pb_segments, valid_data_line, lines_amplitude, lines_slop, lines_feature = \
             self.contour_feature_map_extractor.forward(image, feature, init_body2view_pose_data, camera_data, template_view, fore_hist, back_hist)
 
+        ##
+        # b. Predict the boundary probability map with the boundary prediction
+        # module
+        #
+        # Note: the mean and variance are computed by fitting a Gaussian
+        # distribution to the joint posterior probability, and are used in the
+        # gradient and Hessian matrix computation (see the paper for more
+        # details)
+        ##
         # distributions, distribution_mean, distribution_variance, distribution_standard_deviation =\
         distributions, distribution_mean, distribution_uncertainties =\
             self.boundary_predictor.forward(lines_feature, lines_image_pf_segments, lines_image_pb_segments, lines_slop, lines_amplitude)
         # distribution_uncertainties = 1 / distribution_variance
 
+        ##
+        # c. Compute the gradient and the Hessian matrix of the log joint
+        # posterior probability (the joint posterior probability is the
+        # boundary probability map)
+        ##
         gradient, hessian = \
         self.derivative_calculator.forward(normals_in_image, centers_in_image, centers_in_body, init_body2view_pose_data, camera_data,
                                            valid_data_line, distributions, distribution_mean, distribution_uncertainties, it)
@@ -562,34 +586,79 @@ class DeepAC(BaseModel):
 
         image = data['image']
         B, _, H, W = image.shape
+        
+        ##
+        # 1. Apply the feature maps extractor
+        # (FPN-Lite: U-Net with MobileNet backbone)
+        # features is a list of feature maps at different scales
+        # (from the coarsest to the finest scale)
+        ##
         features = self.extractor._forward(image)
         
+        # Compute the histograms given the initial pose if
+        # they have not been computed yet
         if tracking == False:
             fore_hist, back_hist = self.init_histogram(data)
         else:
             fore_hist = data['fore_hist']
             back_hist = data['back_hist']
 
+        # Create a new key in the data dictionary to store the optimized pose
         data['opt_body2view_pose'] = []
+        
         camera = data['camera']
         closest_orientations_in_body = data['closest_orientations_in_body']
         closest_template_views = data['closest_template_views']
         optimizer = self.optimizer
         init_body2view_pose = data['body2view_pose']
+        
+        ##
+        # 2. Coarse-to-fine optimization
+        # (go through the scales and update the pose at each scale,
+        # beginning with the coarsest scale and ending with the finest scale)
+        ##
         for it, s in enumerate(self.conf.scales):
+            
+            # Compute the dimension of the RGB image at the current scale
+            # ie, the scale of the feature map, and update the camera
+            # parameters accordingly
             image_scale = float(2 ** s)
             camera_pyr = camera.scale(1 / image_scale)
+            # FIXME: why not directly using the feature map size??
             h_cur = H // int(image_scale)
             w_cur = W // int(image_scale)
+            
+            ##
+            # 2.1. Downsample the RGB image and get the corresponding feature map
+            ##
+            # Resize the RGB image to the current scale (downsampling)
             image_pyr = torch.nn.functional.interpolate(image, size=(h_cur, w_cur), mode=self.conf.down_sample_image_mode)
+            # Get the corresponding feature map at the current scale
             feature = features[-(s+1)]
-
+            
+            ##
+            # 2.2. Extract the correspondence lines from the closest view
+            # (centers, normals, and foreground and background distances)
+            ##
             index = get_closest_template_view_index(init_body2view_pose, closest_orientations_in_body)
             template_view = torch.stack([closest_template_views[b][index[b]] for b in range(closest_template_views.shape[0])])
             
+            ##
+            # 2.3. 3 steps:
+            # a. Contour feature map extraction
+            # b. Boundary probability map prediction
+            # c. Gradient and Hessian matrix computation
+            ##
             B, A = self.run_iteration(image_pyr, feature, init_body2view_pose._data, camera_pyr._data, template_view, fore_hist, back_hist, it)
 
+            ##
+            # 2.4. One step of the optimizer to update the pose
+            ##
             optimizing_pose_q = optimizer(dict(pose=init_body2view_pose, B=B, A=A))
+            
+            ##
+            # 2.5. Update the current pose
+            ##
             data['opt_body2view_pose'].append(optimizing_pose_q)
             init_body2view_pose = optimizing_pose_q.detach()
 

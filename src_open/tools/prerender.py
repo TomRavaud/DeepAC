@@ -102,7 +102,7 @@ def preprocess(conf, obj_dirs, obj_paths):
 
         orientation = (body.world2body_pose @ view2world_pose).R[:, :3, 2].unsqueeze(1).cpu().numpy()
         # orientation = view2world_pose.R[:, :3, 2].unsqueeze(1).cpu().numpy()
-
+        
         ret, centers_in_body, normals_in_body, foreground_distance, background_distance = \
             render_geometry.generate_point_data(body.name, depths, k_min_contour_length, num_sample_contour_point,
                                                 k_contour_normal_approx_radius)
