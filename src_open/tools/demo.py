@@ -141,6 +141,7 @@ def main(cfg):
         
         # Keep only 1 out of data_conf.skip_template_view views
         # (FIXME: discard views that are too close to each other ?)
+        # FIXME: why not sampling the cameras more coarsely ?
         closest_orientations_in_body = orientations[indices[::data_conf.skip_template_view]]
         # Keep the corresponding points and normals
         closest_template_views = torch.stack([template_views[ind * num_sample_contour_points:(ind + 1) * num_sample_contour_points, :]
@@ -189,9 +190,8 @@ def main(cfg):
         # - the k closest orientations in the body frame
         # - the histograms
         #
-        # Note: the k poses we pass to the model are the candidate poses
-        # for the current frame. At each iteration, one of these poses is
-        # chosen as the optimized pose.
+        # Note: the number of pre-computed views and orientations is limited
+        # to k for each frame to avoid working with the entire set
         ##
         data = {
             'image': img[None].cuda(),

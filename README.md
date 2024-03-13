@@ -24,7 +24,7 @@ pip install "git+https://github.com/facebookresearch/pytorch3d.git@stable"
 pip install -r requirements.txt
 ```
 
-Download the demo data from [here]() and place the data folder in `REPO`.
+Download the demo data from [here](https://drive.google.com/drive/folders/1-U25shTaAKWX-zfb1TMrzU3CHhX5hQPE?usp=drive_link) and place the data folder in `REPO`.
 
 Download the [pretrained models](https://drive.google.com/file/d/1B7qolNwPMhLlUEcN5Bi8iDc2XxrR-M4e/view?usp=sharing), and place them in `workspace/train_bop_deepac`, like:
 ```shell
