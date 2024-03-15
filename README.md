@@ -11,7 +11,7 @@
 
 ## Installation
 ```shell
-conda create -n deepac python=3.8
+conda create -n deepac python=3.9
 conda activate deepac
 # install torch
 pip install torch==1.11.0+cu115 torchvision==0.12.0+cu115 torchaudio==0.11.0 -f https://download.pytorch.org/whl/torch_stable.html

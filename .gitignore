@@ -1,5 +1,6 @@
 /data/
 /workspace/
+/datasets
 __pycache__/
 .vscode/
 .hydra/

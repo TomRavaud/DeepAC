@@ -21,9 +21,9 @@ data:
   dataset_dir: datasets/RBOT
   change_background: false
   batch_size_per_gpu: 1
-  test_obj_names: # ['cube'] 
-                ['ape', 'bakingsoda', 'benchviseblue', 'broccolisoup', 'cam', 'can', 'cat', 'clown', 'cube',
-                    'driller', 'duck', 'eggbox', 'glue', 'iron', 'koalacandy', 'lamp', 'phone', 'squirrel']
+  # test_obj_names: ['ape', baking_soda', 'can', 'cat', 'cube', 'glue']
+  test_obj_names: ['ape', 'bakingsoda', 'benchviseblue', 'broccolisoup', 'cam', 'can', 'cat', 'clown', 'cube', 'driller', 'duck', 'eggbox', 'glue', 'iron', 'koalacandy', 'lamp', 'phone', 'squirrel']
+  # test_slices: ['a_regular']
   test_slices: ['a_regular' , 'b_dynamiclight', 'c_noisy', 'd_occlusion']
   # test_slices: ['c_noisy']
   skip_frame: 1
