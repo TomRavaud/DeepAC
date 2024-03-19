@@ -7,7 +7,7 @@ save_dir: ${work_dir}/workspace/test_rbot_deepac
 load_cfg: ${work_dir}/workspace/train_bop_deepac/logs-2024-01-08-15-52-47/train_cfg.yml
 load_model: ${work_dir}/workspace/train_bop_deepac/logs-2024-01-08-15-52-47/model_last.ckpt
 # -----------------
-output_video: false
+output_video: true
 output_size: [320, 320]
 output_pose: true
 
@@ -21,17 +21,14 @@ data:
   dataset_dir: datasets/RBOT
   change_background: false
   batch_size_per_gpu: 1
-  # test_obj_names: ['ape', baking_soda', 'can', 'cat', 'cube', 'glue']
   test_obj_names: ['ape', 'bakingsoda', 'benchviseblue', 'broccolisoup', 'cam', 'can', 'cat', 'clown', 'cube', 'driller', 'duck', 'eggbox', 'glue', 'iron', 'koalacandy', 'lamp', 'phone', 'squirrel']
-  # test_slices: ['a_regular']
   test_slices: ['a_regular' , 'b_dynamiclight', 'c_noisy', 'd_occlusion']
-  # test_slices: ['c_noisy']
   skip_frame: 1
   num_correspondence_lines: 200
   # workers_per_gpu: 0
 
 ray:
-  use_ray: true # false
+  use_ray: false # false
   n_obj_workers: 3
   n_slice_workers: 1
   n_cpus_per_worker: 1

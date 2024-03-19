@@ -1,0 +1,30 @@
+name: deepac
+channels:
+  - conda-forge
+  - pytorch
+  - fvcore
+  - iopath
+dependencies:
+  - nvidia::cudatoolkit=11.5.*
+  - python=3.9
+  - numpy=1.23.*
+  - pytorch::pytorch=1.11.*
+  - torchvision=0.12.*
+  - torchaudio=0.11.*
+  - fvcore
+  - iopath
+  - bottler::nvidiacub
+  - pytorch3d::pytorch3d=0.7.*
+  - pytorch-lightning=1.8.*
+  - imgaug=0.4.*
+  - opencv=4.6.*
+  - hydra-core=1.1.*
+  - omegaconf=2.1.*
+  - timm=0.9.*
+  - tqdm=4.64.*
+  - segmentation-models-pytorch=0.3.*
+  # - coremltools=6.*
+  - tensorboard=2.11.*
+  - pip
+  - pip:
+    - ray==2.1.*
